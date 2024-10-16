@@ -11,6 +11,7 @@ from httpx import HTTPStatusError
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from reportlab.pdfbase.pdfmetrics import stringWidth
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -348,6 +349,16 @@ class AIHawkEasyApplier:
 
         dropdown = element.find_element(By.TAG_NAME, 'select')
         select = Select(dropdown)
+        dropdown_id = dropdown.get_attribute('id')
+        if 'phoneNumber-Country' in dropdown_id:
+            country = self.resume_generator_manager.get_resume_country()
+            if country:
+                try:
+                    select.select_by_value(country)
+                    logger.debug(f"Selected phone country: {country}")
+                    return True
+                except NoSuchElementException:
+                    logger.warning(f"Country {country} not found in dropdown options")
 
         options = [option.text for option in select.options]
         logger.debug(f"Dropdown options found: {options}")
@@ -371,7 +382,6 @@ class AIHawkEasyApplier:
         if existing_answer:
             logger.debug(f"Found existing answer for question '{question_text}': {existing_answer}")
         else:
-
             logger.debug(f"No existing answer found, querying model for: {question_text}")
             existing_answer = self.gpt_answerer.answer_question_from_options(question_text, options)
             logger.debug(f"Model provided answer: {existing_answer}")
@@ -536,11 +546,11 @@ class AIHawkEasyApplier:
                     wrapped_lines = []
                     for line in text.splitlines():
 
-                        if utils.stringWidth(line, font, font_size) > max_width:
+                        if stringWidth(line, font, font_size) > max_width:
                             words = line.split()
                             new_line = ""
                             for word in words:
-                                if utils.stringWidth(new_line + word + " ", font, font_size) <= max_width:
+                                if stringWidth(new_line + word + " ", font, font_size) <= max_width:
                                     new_line += word + " "
                                 else:
                                     wrapped_lines.append(new_line.strip())
