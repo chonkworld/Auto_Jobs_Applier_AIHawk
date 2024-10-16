@@ -160,3 +160,6 @@ mono_crash.*
 /data_folder
 /virtual
 /data_folder_original
+data_folder/config.yaml
+data_folder/plain_text_resume.yaml
+data_folder/secrets.yaml
